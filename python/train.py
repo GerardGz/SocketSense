@@ -5,7 +5,7 @@ import os
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32 # Number of images to process at a time
 EPOCHS = 10     # Number of times to go through the entire dataset
-NUM_CLASSES = 3 # The number of socket sizes you are classifying
+NUM_CLASSES = 4 # The number of socket sizes you are classifying
 
 TRAIN_DIR = '../dataset/train'
 VALIDATION_DIR = '../dataset/validation'
