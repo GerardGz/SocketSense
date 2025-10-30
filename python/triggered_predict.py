@@ -9,7 +9,7 @@ import time
 MODEL_PATH = '../models/socket_classifier_v1.h5'
 IMG_SIZE = (224, 224)
 # IMPORTANT: Must be in alphabetical order of your training folders
-CLASS_NAMES = ['8mm', '12mm', '16mm'] # Example: Change to your actual grid locations
+CLASS_NAMES = ['A1', 'A2', 'B1'] # Example: Change to your actual grid locations
 
 # --- Trigger Settings ---
 MIN_CONTOUR_AREA = 2000  # The minimum size of motion to consider it an "object"
