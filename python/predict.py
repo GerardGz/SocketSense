@@ -1,3 +1,5 @@
+# We can ignore this file, maybe use it to test one at a time manually
+
 import tensorflow as tf
 import numpy as np
 import os

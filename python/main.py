@@ -1,5 +1,3 @@
-# triggered_predict.py
-
 import cv2
 import tensorflow as tf
 import numpy as np
@@ -9,7 +7,7 @@ import time
 MODEL_PATH = '../models/socket_classifier_v1.h5'
 IMG_SIZE = (224, 224)
 # IMPORTANT: Must be in alphabetical order of your training folders
-CLASS_NAMES = ['8mm', '12mm', '16mm'] # Example: Change to your actual grid locations
+CLASS_NAMES = ['8mm', '12mm', '16mm', '20mm'] 
 
 # --- Trigger Settings ---
 MIN_CONTOUR_AREA = 2000  # The minimum size of motion to consider it an "object"
@@ -44,6 +42,7 @@ if not ret:
     print("Error: Could not capture initial frame.")
     exit()
     
+# Helps with motion detection
 background_gray = cv2.cvtColor(background_frame, cv2.COLOR_BGR2GRAY)
 background_gray = cv2.GaussianBlur(background_gray, (21, 21), 0)
 print("Background captured. Ready for detection.")
@@ -76,18 +75,18 @@ while True:
             if cv2.contourArea(contour) < MIN_CONTOUR_AREA:
                 continue
 
-            # --- TRIGGER! ---
-            print("Motion detected! Running classification...")
+            print("Motion detected. Running classification...")
             
             # Prepare the frame and predict
             processed_frame = preprocess_frame(frame)
-            predictions = model.predict(processed_frame)
+            predictions = model.predict(processed_frame) # [0.3, 0.8, 0.3, 1.0]
             
             # Get the result
             predicted_class_idx = np.argmax(predictions, axis=1)[0]
             confidence = np.max(predictions) * 100
             predicted_class = CLASS_NAMES[predicted_class_idx]
-            current_prediction = f"{predicted_class} ({confidence:.2f}%)"
+
+            print(f"Prediction: {predicted_class} ({confidence:.2f}%)")
             
             # Update the cooldown timer and break the loop to show the result
             last_prediction_time = time.time()
