@@ -2,12 +2,11 @@ import cv2
 import tensorflow as tf
 import numpy as np
 import time
+import json
 
 # --- Configuration ---
 MODEL_PATH = '../models/socket_classifier_v1.h5'
 IMG_SIZE = (224, 224)
-# IMPORTANT: Must be in alphabetical order of your training folders
-CLASS_NAMES = ['8mm', '12mm', '16mm', '20mm'] 
 
 # --- Trigger Settings ---
 MIN_CONTOUR_AREA = 2000  # The minimum size of motion to consider it an "object"
@@ -17,6 +16,11 @@ COOLDOWN_PERIOD = 3.0    # Wait 3 seconds after a prediction before triggering a
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded successfully!")
+
+with open('../config.json', 'r') as f:
+    config = json.load(f)
+CLASS_NAMES = config['class_names']
+GRID_MAP = config['socket_to_grid_map']
 
 # --- 2. Function to Preprocess a Live Camera Frame ---
 def preprocess_frame(frame):
@@ -86,21 +90,25 @@ while True:
             confidence = np.max(predictions) * 100
             predicted_class = CLASS_NAMES[predicted_class_idx]
 
-            print(f"Prediction: {predicted_class} ({confidence:.2f}%)")
+            if predicted_class in GRID_MAP:
+                # figure out how many degrees to rotate
+                action = GRID_MAP[predicted_class]
+                angle_to_rotate = action['rotation_angle']
+                grid_name = action['grid_id']
+    
+                # c++ will read this to know what to rotate
+                command_string = f"ROTATE:{angle_to_rotate}"
+    
+                # Send the command by printing to standard output
+                print(command_string, flush=True)
+    
+                print(f"Action: Detected {predicted_class} ({confidence:.2f}%), sending to {grid_name}. Command: {command_string}")
+            else:
+                print(f"Error: {predicted_class} not found in config map.")
             
             # Update the cooldown timer and break the loop to show the result
             last_prediction_time = time.time()
             break # Only classify the first large motion detected
-
-    # Display the current prediction on the screen
-    cv2.putText(frame, f"Prediction: {current_prediction}", (20, 40), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-    # Show the resulting frame
-    cv2.imshow('Socket Detector', frame)
-
-    if cv2.waitKey(1) == ord('q'):
-        break
 
 # Cleanup
 cap.release()

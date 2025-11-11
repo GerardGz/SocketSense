@@ -1,0 +1,30 @@
+{
+  "model_path": "models/socket_classifier_v1.h5",
+  "image_size": [224, 224],
+  "class_names": [
+    "8mm",
+    "12mm",
+    "16mm",
+    "20mm"
+  ],
+  "socket_to_grid_map": {
+    "8mm": {
+        "grid_id": "Grid 1",
+        "rotation_angle": 20
+    },
+    "12mm": {
+      "grid_id": "Grid 2",
+      "rotation_angle": 40
+    },
+    "16mm": {
+      "grid_id": "Grid 3",
+      "rotation_angle": 60
+    },
+    "20mm": {
+      "grid_id": "Grid 4",
+      "rotation_angle": 80
+    }
+  },
+  "ipc_host": "localhost",
+  "ipc_port": 65432
+}
