@@ -3,26 +3,26 @@
   "image_size": [224, 224],
   "class_names": [
     "8mm",
-    "12mm",
     "16mm",
-    "20mm"
+    "24mm",
+    "32mm"
   ],
   "socket_to_grid_map": {
     "8mm": {
-        "grid_id": "Grid 1",
-        "rotation_angle": 20
-    },
-    "12mm": {
-      "grid_id": "Grid 2",
-      "rotation_angle": 40
+      "grid_id": "Grid 1",
+      "servo_id": 1
     },
     "16mm": {
-      "grid_id": "Grid 3",
-      "rotation_angle": 60
+      "grid_id": "Grid 2",
+      "servo_id": 2
     },
-    "20mm": {
+    "24mm": {
+      "grid_id": "Grid 3",
+      "servo_id": 3
+    },
+    "32mm": {
       "grid_id": "Grid 4",
-      "rotation_angle": 80
+      "servo_id": 4
     }
   },
   "ipc_host": "localhost",

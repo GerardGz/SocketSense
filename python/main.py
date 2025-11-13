@@ -1,21 +1,38 @@
+# We clone this file inside the pi terminal and install dependencies
+# then we can just do python3 main.py
 import cv2
 import tensorflow as tf
 import numpy as np
 import time
 import json
+import serial
 
 # --- Configuration ---
 MODEL_PATH = '../models/socket_classifier_v1.h5'
 IMG_SIZE = (224, 224)
 
+# run: ls /dev/tty* inside pi terminal to find this:
+ARDUINO_PORT = '/dev/ttyUSB0' 
+BAUD_RATE = 9600
+
 # --- Trigger Settings ---
-MIN_CONTOUR_AREA = 2000  # The minimum size of motion to consider it an "object"
-COOLDOWN_PERIOD = 3.0    # Wait 3 seconds after a prediction before triggering again
+MIN_CONTOUR_AREA = 2000
+COOLDOWN_PERIOD = 3.0
 
 # --- 1. Load the Trained Model (Do this only ONCE) ---
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded successfully!")
+
+try:
+    print(f"Connecting to Arduino on {ARDUINO_PORT}...")
+    ser = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=1)
+    time.sleep(2) # Give the Arduino time to reset after connection
+    print("Arduino connected!")
+except serial.SerialException as e:
+    print(f"Error: Could not open port {ARDUINO_PORT}. {e}")
+    print("Please check the port name and ensure the Arduino is plugged in.")
+    exit()
 
 with open('../config.json', 'r') as f:
     config = json.load(f)
@@ -35,81 +52,78 @@ def preprocess_frame(frame):
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("Error: Could not open camera.")
+    ser.close() # Close serial port if camera fails
     exit()
 
 print("Camera started. Looking for an empty background...")
 time.sleep(2) # Give camera time to adjust
 
-# Capture the initial background frame
 ret, background_frame = cap.read()
 if not ret:
     print("Error: Could not capture initial frame.")
+    ser.close()
+    cap.release()
     exit()
     
-# Helps with motion detection
 background_gray = cv2.cvtColor(background_frame, cv2.COLOR_BGR2GRAY)
 background_gray = cv2.GaussianBlur(background_gray, (21, 21), 0)
 print("Background captured. Ready for detection.")
 
 last_prediction_time = 0
-current_prediction = "None"
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+# --- NEW: Added try...finally block ---
+try:
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Dropped frame.")
+            break
 
-    # Only check for motion if we are not in the cooldown period
-    if time.time() - last_prediction_time > COOLDOWN_PERIOD:
-        current_prediction = "None" # Reset prediction after cooldown
+        # Only check for motion if we are not in the cooldown period
+        if time.time() - last_prediction_time > COOLDOWN_PERIOD:
+            # --- Motion Detection Logic ---
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (21, 21), 0)
+            frame_delta = cv2.absdiff(background_gray, gray)
+            thresh = cv2.threshold(frame_delta, 25, 255, cv2.THRESH_BINARY)[1]
+            contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # --- Motion Detection Logic ---
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (21, 21), 0)
+            for contour in contours:
+                if cv2.contourArea(contour) < MIN_CONTOUR_AREA:
+                    continue
 
-        # Compute the difference between the background and current frame
-        frame_delta = cv2.absdiff(background_gray, gray)
-        thresh = cv2.threshold(frame_delta, 25, 255, cv2.THRESH_BINARY)[1]
+                print("Motion detected. Running classification...")
+                
+                # Prepare the frame and predict
+                processed_frame = preprocess_frame(frame)
+                predictions = model.predict(processed_frame)
+                
+                # Get the result
+                predicted_class_idx = np.argmax(predictions, axis=1)[0]
+                confidence = np.max(predictions) * 100
+                predicted_class = CLASS_NAMES[predicted_class_idx]
+
+                if predicted_class in GRID_MAP:
+                    action_info = GRID_MAP[predicted_class]
+                    servo_to_activate = action_info['servo_id']
+                    grid_name = action_info['grid_id']
         
-        # Find contours of the detected motion
-        contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    command_string = f"OPEN:{servo_to_activate}\n"  
 
-        for contour in contours:
-            # If the contour is too small, ignore it
-            if cv2.contourArea(contour) < MIN_CONTOUR_AREA:
-                continue
+                    ser.write(command_string.encode('utf-8'))   
 
-            print("Motion detected. Running classification...")
-            
-            # Prepare the frame and predict
-            processed_frame = preprocess_frame(frame)
-            predictions = model.predict(processed_frame) # [0.3, 0.8, 0.3, 1.0]
-            
-            # Get the result
-            predicted_class_idx = np.argmax(predictions, axis=1)[0]
-            confidence = np.max(predictions) * 100
-            predicted_class = CLASS_NAMES[predicted_class_idx]
+                    print(f"Action: Detected {predicted_class} ({confidence:.2f}%), sending to {grid_name}. Command: {command_string.strip()}")
+                else:
+                    print(f"Error: {predicted_class} not found in config map.")
+                
+                last_prediction_time = time.time()
+                break # Only classify the first large motion detected
 
-            if predicted_class in GRID_MAP:
-                # figure out how many degrees to rotate
-                action = GRID_MAP[predicted_class]
-                angle_to_rotate = action['rotation_angle']
-                grid_name = action['grid_id']
-    
-                # c++ will read this to know what to rotate
-                command_string = f"ROTATE:{angle_to_rotate}"
-    
-                # Send the command by printing to standard output
-                print(command_string, flush=True)
-    
-                print(f"Action: Detected {predicted_class} ({confidence:.2f}%), sending to {grid_name}. Command: {command_string}")
-            else:
-                print(f"Error: {predicted_class} not found in config map.")
-            
-            # Update the cooldown timer and break the loop to show the result
-            last_prediction_time = time.time()
-            break # Only classify the first large motion detected
+except KeyboardInterrupt:
+    print("\nShutting down by user command...")
 
-# Cleanup
-cap.release()
-cv2.destroyAllWindows()
+finally:
+    print("Releasing resources...")
+    cap.release()
+    ser.close()
+    print("Camera and Serial port released")
