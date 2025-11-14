@@ -37,7 +37,20 @@ bool stringComplete = false;
 void setup() {
     // Serial port for the Raspberry Pi
     Serial.begin(9600); 
-    Serial.println("Dual Controller (Stepper & Servo) Booting Up...");
+    Serial.println("Arduino booted. Waiting for 'START' command from Python..."); 
+
+    while (true) {
+        if (Serial.available()) {
+            String msg = Serial.readStringUntil('\n');
+            msg.trim(); // Remove any extra whitespace
+            if (msg == "START") {
+                // Send the "OK" reply back to Python
+                Serial.println("Handshake OK. Initializing hardware...");
+                break; // Exit this loop and continue setup()
+            }
+        }
+        delay(100); // Don't spam the CPU
+    } 
     
     // You might start a second serial port for the voice module
     // Serial1.begin(9600); 

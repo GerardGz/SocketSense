@@ -26,12 +26,35 @@ print("Model loaded successfully!")
 
 try:
     print(f"Connecting to Arduino on {ARDUINO_PORT}...")
-    ser = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=1)
-    time.sleep(2) # Give the Arduino time to reset after connection
-    print("Arduino connected!")
+    ser = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=2) # 2-second timeout
+    
+    # 1. Wait for Arduino to reset
+    print("Waiting for Arduino to reboot...")
+    time.sleep(2) 
+    
+    # 2. Clear any "booting..." messages
+    ser.reset_input_buffer()
+    
+    # 3. Send the "START" handshake
+    print("Sending 'START' handshake...")
+    ser.write("START\n".encode('utf-8'))
+    
+    # 4. Wait for the "Handshake OK" reply
+    response = ser.readline().decode('utf-8').strip()
+    
+    if "Handshake OK" in response:
+        print(f"Arduino replied: {response}")
+        print("--- Handshake successful. System is LIVE. ---")
+    else:
+        print(f"--- Handshake FAILED. ---")
+        print(f"Arduino sent an unexpected reply: {response}")
+        ser.close()
+        exit()
 except serial.SerialException as e:
-    print(f"Error: Could not open port {ARDUINO_PORT}. {e}")
-    print("Please check the port name and ensure the Arduino is plugged in.")
+    print(f"\n--- FATAL ERROR ---")
+    print(f"Could not open port {ARDUINO_PORT}. {e}")
+    print("1. Is the Arduino plugged in?")
+    print("2. Is the ARDUINO_PORT variable correct?")
     exit()
 
 with open('../config.json', 'r') as f:
@@ -108,7 +131,7 @@ try:
                     angle_to_rotate = action_info['stepper1_angle']
                     grid_name = action_info['grid_id']
         
-                    command_string = f"OPEN:{angle_to_rotate}\n"  
+                    command_string = f"SORT:{angle_to_rotate}\n"  
 
                     ser.write(command_string.encode('utf-8'))   
 
