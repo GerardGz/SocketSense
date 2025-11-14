@@ -105,10 +105,10 @@ try:
 
                 if predicted_class in GRID_MAP:
                     action_info = GRID_MAP[predicted_class]
-                    servo_to_activate = action_info['servo_id']
+                    angle_to_rotate = action_info['stepper1_angle']
                     grid_name = action_info['grid_id']
         
-                    command_string = f"OPEN:{servo_to_activate}\n"  
+                    command_string = f"OPEN:{angle_to_rotate}\n"  
 
                     ser.write(command_string.encode('utf-8'))   
 

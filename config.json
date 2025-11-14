@@ -2,29 +2,29 @@
   "model_path": "models/socket_classifier_v1.h5",
   "image_size": [224, 224],
   "class_names": [
-    "8mm",
-    "16mm",
-    "24mm",
-    "32mm"
+    "12mm",
+    "15mm",
+    "20mm",
+    "24mm"
   ],
   "socket_to_grid_map": {
-    "8mm": {
+    "12mm": {
       "grid_id": "Grid 1",
-      "servo_id": 1
+      "stepper1_angle": 90
     },
-    "16mm": {
+    "15mm": {
       "grid_id": "Grid 2",
-      "servo_id": 2
+      "stepper1_angle": 180
+    },
+    "20mm": {
+      "grid_id": "Grid 3",
+      "stepper1_angle": 270
     },
     "24mm": {
-      "grid_id": "Grid 3",
-      "servo_id": 3
-    },
-    "32mm": {
       "grid_id": "Grid 4",
-      "servo_id": 4
+      "stepper1_angle": 300
     }
   },
-  "ipc_host": "localhost",
-  "ipc_port": 65432
+  "serial_port": "/dev/ttyUSB0",
+  "baud_rate": 9600
 }
