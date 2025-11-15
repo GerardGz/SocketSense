@@ -6,10 +6,11 @@ StepperController::StepperController(AccelStepper* s1, AccelStepper* s2, int ste
     _steps_per_rev = steps_per_rev;
 }
 
-// Helper to convert degrees to steps
+// --- HELPER FUNCTION IS UNCHANGED ---
 long StepperController::angleToSteps(int angle) {
     return (long)((angle / 360.0) * _steps_per_rev);
 }
+
 
 /**
  * @brief This function executes the full, multi-step sorting process.
@@ -25,18 +26,14 @@ void StepperController::executeSortAction(int angle) {
     
     long stepsToMove = angleToSteps(angle);
     _stepper1->moveTo(stepsToMove);
-    
-    // This blocks until Stepper 1 is in position
-    // The main loop() continues to call .run()
-    _stepper1->runToPosition();
+    _stepper1->runToPosition(); // Blocks until Stepper 1 is in position
     
     Serial.println("STEPPER 1: In position.");
 
     // --- 2. Spin Stepper 2 (Top) one full 360 to drop ---
     Serial.println("STEPPER 2: Beginning 360 drop spin.");
     
-    // Tell Stepper 2 to move 360 degrees (e.g., 200 steps)
-    // from its current position.
+    // Tell Stepper 2 to move 360 degrees from its current position.
     _stepper2->move(_steps_per_rev); 
     
     // This blocks until Stepper 2 completes its full rotation
@@ -44,10 +41,27 @@ void StepperController::executeSortAction(int angle) {
 
     Serial.println("STEPPER 2: Drop complete.");
 
-    // --- 3. Return Stepper 2 to its home position (optional) ---
-    // We can just set its current position back to 0.
-    // Or, if it has a home switch, we'd run a homing routine.
-    _stepper2->setCurrentPosition(0);
+    // --- 3. NEW: Return BOTH steppers to home (0 degrees) ---
+    Serial.println("HOMING: Returning both steppers to 0.");
+
+    // Tell Stepper 1 to go home
+    _stepper1->moveTo(0);
     
-    Serial.println("--- Sort Action Finished ---");
+    // Tell Stepper 2 to go home (it will spin 360 degrees back)
+    _stepper2->moveTo(0); 
+
+    // Wait for them to get there. We must block and run them
+    // sequentially so they finish before the next command.
+    
+    // Stepper 1 runs home:
+    Serial.println("HOMING: Stepper 1 returning...");
+    _stepper1->runToPosition();
+    Serial.println("HOMING: Stepper 1 at 0.");
+    
+    // Stepper 2 runs home:
+    Serial.println("HOMING: Stepper 2 returning...");
+    _stepper2->runToPosition();
+    Serial.println("HOMING: Stepper 2 at 0.");
+
+    Serial.println("--- Sort Action Finished. Ready for next. ---");
 }
