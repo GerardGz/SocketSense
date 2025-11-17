@@ -9,7 +9,7 @@ public:
     void executeAction(int servoID);
 private:
     Adafruit_PWMServoDriver* _pwm;
-    int SERVOMIN;
-    int SERVOMAX;
+    int ORIGINAL_PULSE;
+    int ACTIVATED_PULSE;
 };
 #endif

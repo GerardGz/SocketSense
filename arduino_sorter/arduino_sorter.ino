@@ -56,12 +56,12 @@ void setup() {
     // Serial1.begin(9600); 
 
     // Initialize Stepper 1
-    stepper1.setMaxSpeed(1000);
-    stepper1.setAcceleration(500);
+    stepper1.setMaxSpeed(500);
+    stepper1.setAcceleration(250);
     
     // Initialize Stepper 2
-    stepper2.setMaxSpeed(500); // Slower for the drop
-    stepper2.setAcceleration(200);
+    stepper2.setMaxSpeed(300); // Slower for the drop
+    stepper2.setAcceleration(150);
     Serial.println("Steppers initialized.");
 
     // Initialize Servo Driver

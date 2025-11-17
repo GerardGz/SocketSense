@@ -31,15 +31,15 @@ void StepperController::executeSortAction(int angle) {
     Serial.println("STEPPER 1: In position.");
 
     // --- 2. Spin Stepper 2 (Top) one full 360 to drop ---
-    Serial.println("STEPPER 2: Beginning 360 drop spin.");
+    //Serial.println("STEPPER 2: Beginning 360 drop spin.");
     
     // Tell Stepper 2 to move 360 degrees from its current position.
-    _stepper2->move(_steps_per_rev); 
+    //_stepper2->move(_steps_per_rev); 
     
     // This blocks until Stepper 2 completes its full rotation
-    _stepper2->runToPosition();
+    //_stepper2->runToPosition();
 
-    Serial.println("STEPPER 2: Drop complete.");
+    //Serial.println("STEPPER 2: Drop complete.");
 
     // --- 3. NEW: Return BOTH steppers to home (0 degrees) ---
     Serial.println("HOMING: Returning both steppers to 0.");
@@ -48,7 +48,7 @@ void StepperController::executeSortAction(int angle) {
     _stepper1->moveTo(0);
     
     // Tell Stepper 2 to go home (it will spin 360 degrees back)
-    _stepper2->moveTo(0); 
+    //_stepper2->moveTo(0); 
 
     // Wait for them to get there. We must block and run them
     // sequentially so they finish before the next command.
@@ -59,9 +59,9 @@ void StepperController::executeSortAction(int angle) {
     Serial.println("HOMING: Stepper 1 at 0.");
     
     // Stepper 2 runs home:
-    Serial.println("HOMING: Stepper 2 returning...");
-    _stepper2->runToPosition();
-    Serial.println("HOMING: Stepper 2 at 0.");
+    //Serial.println("HOMING: Stepper 2 returning...");
+    //_stepper2->runToPosition();
+    //Serial.println("HOMING: Stepper 2 at 0.");
 
     Serial.println("--- Sort Action Finished. Ready for next. ---");
 }

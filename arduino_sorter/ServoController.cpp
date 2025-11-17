@@ -2,8 +2,8 @@
 
 ServoController::ServoController(Adafruit_PWMServoDriver* pwm_driver) {
     _pwm = pwm_driver;
-    SERVOMIN = 150; // Tune this
-    SERVOMAX = 400; // Tune this
+    ORIGINAL_PULSE = 300; // Tune this
+    ACTIVATED_PULSE = 150; // Tune this
 }
 
 void ServoController::executeAction(int servoID) {
@@ -11,9 +11,9 @@ void ServoController::executeAction(int servoID) {
     Serial.print("SERVO: Activating flap for servo ID ");
     Serial.println(servoID);
 
-    _pwm->setPWM(servoChannel, 0, SERVOMAX); // Open
+    _pwm->setPWM(servoChannel, 0, ACTIVATED_PULSE); // Open
     delay(1000);
-    _pwm->setPWM(servoChannel, 0, SERVOMIN); // Close
+    _pwm->setPWM(servoChannel, 0, ORIGINAL_PULSE); // Close
     
     Serial.println("SERVO: Flap cycle complete.");
 }
