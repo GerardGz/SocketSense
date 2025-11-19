@@ -3,7 +3,7 @@
 ServoController::ServoController(Adafruit_PWMServoDriver* pwm_driver) {
     _pwm = pwm_driver;
     ORIGINAL_PULSE = 300; // Tune this
-    ACTIVATED_PULSE = 150; // Tune this
+    ACTIVATED_PULSE = 115; // Tune this
 }
 
 void ServoController::executeAction(int servoID) {
