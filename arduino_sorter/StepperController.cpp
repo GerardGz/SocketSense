@@ -6,8 +6,8 @@ StepperController::StepperController(int s1_step, int s1_dir, int s2_step, int s
     _s2_step_pin = s2_step;
     _s2_dir_pin  = s2_dir;
     _motor2 = new AccelStepper(AccelStepper::DRIVER, _s2_step_pin, _s2_dir_pin);
-    _motor2->setMaxSpeed(50);
-    _motor2->setAcceleration(20);
+    _motor2->setMaxSpeed(500);
+    _motor2->setAcceleration(250);
 
     pinMode(_s1_step_pin, OUTPUT);
     pinMode(_s1_dir_pin, OUTPUT);
@@ -56,7 +56,7 @@ void StepperController::executeSortAction(int angle) {
     // --- Phase 2: Stepper 2 spins 360 (Make it SLOW & STRONG) ---
     Serial.println("STEPPER 2: Spinning 360 with AccelStepper");
     _motor2->setCurrentPosition(0); // reset to 0
-    _motor2->moveTo(200); // full rotation in full step mode
+    _motor2->moveTo(3200); // full rotation in full step mode
 
     while(_motor2->distanceToGo() != 0) {
         _motor2->run();
