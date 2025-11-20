@@ -22,7 +22,10 @@ StepperController::~StepperController() {
 }
 
 long StepperController::angleToSteps(int angle) {
-    return (long)((angle / 360.0) * 200.0);
+    const float MOTOR_FULL_STEPS = 200.0f;   // motor full steps per rev (change if motor differs)
+    const float GEAR_RATIO = 28.0f / 18.0f;  // adjust to your measured gear ratio (use float)
+    float steps = (angle / 360.0f) * MOTOR_FULL_STEPS * GEAR_RATIO;
+    return (long)lround(steps);
 }
 
 // --- UPDATED PULSE FUNCTION ---
@@ -56,7 +59,10 @@ void StepperController::executeSortAction(int angle) {
     // --- Phase 2: Stepper 2 spins 360 (Make it SLOW & STRONG) ---
     Serial.println("STEPPER 2: Spinning 360 with AccelStepper");
     _motor2->setCurrentPosition(0); // reset to 0
-    _motor2->moveTo(3200); // full rotation in full step mode
+
+    const float FLOAT_STEPS = 3200 * (28.0f / 18.0f);
+    long STEPPER2_STEPS = (long)lround(FLOAT_STEPS);
+    _motor2->moveTo(STEPPER2_STEPS); 
 
     while(_motor2->distanceToGo() != 0) {
         _motor2->run();
