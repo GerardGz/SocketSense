@@ -1,10 +1,12 @@
 #ifndef STEPPER_CONTROLLER_H
 #define STEPPER_CONTROLLER_H
 #include <Arduino.h>
+#include <AccelStepper.h>
 
 class StepperController {
 public:
     StepperController(int s1_step, int s1_dir, int s2_step, int s2_dir);
+    ~StepperController();
     void executeSortAction(int angle); 
 
 private:
@@ -12,6 +14,7 @@ private:
     int _s1_dir_pin;
     int _s2_step_pin;
     int _s2_dir_pin;
+    AccelStepper* _motor2;
     
     long angleToSteps(int angle);
 

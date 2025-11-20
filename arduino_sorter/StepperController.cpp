@@ -5,11 +5,20 @@ StepperController::StepperController(int s1_step, int s1_dir, int s2_step, int s
     _s1_dir_pin  = s1_dir;
     _s2_step_pin = s2_step;
     _s2_dir_pin  = s2_dir;
+    _motor2 = new AccelStepper(AccelStepper::DRIVER, _s2_step_pin, _s2_dir_pin);
+    _motor2->setMaxSpeed(50);
+    _motor2->setAcceleration(20);
 
     pinMode(_s1_step_pin, OUTPUT);
     pinMode(_s1_dir_pin, OUTPUT);
     pinMode(_s2_step_pin, OUTPUT);
     pinMode(_s2_dir_pin, OUTPUT);
+}
+
+StepperController::~StepperController() {
+    if (_motor2 != nullptr) {
+        delete _motor2;
+    }
 }
 
 long StepperController::angleToSteps(int angle) {
@@ -45,12 +54,13 @@ void StepperController::executeSortAction(int angle) {
     delay(500);
 
     // --- Phase 2: Stepper 2 spins 360 (Make it SLOW & STRONG) ---
-    Serial.println("STEPPER 2: Spinning 360.");
-    digitalWrite(_s2_dir_pin, LOW); 
-    
-    // 2000 is slow (very high torque for the drop mechanism)
-    // If 2000 is too slow, try 1500. If it still skips, try 2500.
-    stepMotor(_s2_step_pin, 200, 700); 
+    Serial.println("STEPPER 2: Spinning 360 with AccelStepper");
+    _motor2->setCurrentPosition(0); // reset to 0
+    _motor2->moveTo(200); // full rotation in full step mode
+
+    while(_motor2->distanceToGo() != 0) {
+        _motor2->run();
+    }
     
     delay(500); 
 
