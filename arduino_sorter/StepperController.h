@@ -5,17 +5,20 @@
 
 class StepperController {
 public:
-    // Constructor now takes pointers to BOTH steppers
-    StepperController(AccelStepper* stepper1, AccelStepper* stepper2, int steps_per_rev);
-    
-    // This is the main sorting action
+    StepperController(int s1_step, int s1_dir, int s2_step, int s2_dir);
+    ~StepperController();
     void executeSortAction(int angle); 
 
 private:
-    AccelStepper* _stepper1; // The bottom grid-selection stepper
-    AccelStepper* _stepper2; // The top 360-spin stepper
-    int _steps_per_rev;
+    int _s1_step_pin;
+    int _s1_dir_pin;
+    int _s2_step_pin;
+    int _s2_dir_pin;
+    AccelStepper* _motor2;
     
     long angleToSteps(int angle);
+
+    // NEW: Added 'speedDelay' parameter
+    void stepMotor(int stepPin, int steps, int speedDelay);
 };
 #endif

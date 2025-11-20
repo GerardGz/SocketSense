@@ -1,67 +1,73 @@
 #include "StepperController.h"
 
-StepperController::StepperController(AccelStepper* s1, AccelStepper* s2, int steps_per_rev) {
-    _stepper1 = s1;
-    _stepper2 = s2;
-    _steps_per_rev = steps_per_rev;
+StepperController::StepperController(int s1_step, int s1_dir, int s2_step, int s2_dir) {
+    _s1_step_pin = s1_step;
+    _s1_dir_pin  = s1_dir;
+    _s2_step_pin = s2_step;
+    _s2_dir_pin  = s2_dir;
+    _motor2 = new AccelStepper(AccelStepper::DRIVER, _s2_step_pin, _s2_dir_pin);
+    _motor2->setMaxSpeed(50);
+    _motor2->setAcceleration(20);
+
+    pinMode(_s1_step_pin, OUTPUT);
+    pinMode(_s1_dir_pin, OUTPUT);
+    pinMode(_s2_step_pin, OUTPUT);
+    pinMode(_s2_dir_pin, OUTPUT);
 }
 
-// --- HELPER FUNCTION IS UNCHANGED ---
+StepperController::~StepperController() {
+    if (_motor2 != nullptr) {
+        delete _motor2;
+    }
+}
+
 long StepperController::angleToSteps(int angle) {
-    return (long)((angle / 360.0) * _steps_per_rev);
+    return (long)((angle / 360.0) * 200.0);
 }
 
+// --- UPDATED PULSE FUNCTION ---
+// Now accepts 'speedDelay'. 
+// Lower number = Faster (Low Torque)
+// Higher number = Slower (High Torque)
+void StepperController::stepMotor(int stepPin, int steps, int speedDelay) {
+    for (int i = 0; i < steps; i++) {
+        digitalWrite(stepPin, HIGH);
+        delayMicroseconds(speedDelay); 
+        digitalWrite(stepPin, LOW);
+        delayMicroseconds(speedDelay);
+    }
+}
 
-/**
- * @brief This function executes the full, multi-step sorting process.
- * It is "blocking," meaning the Arduino will wait until it's done.
- */
 void StepperController::executeSortAction(int angle) {
     Serial.println("--- Starting Sort Action ---");
 
-    // --- 1. Move Stepper 1 (Bottom) to the grid location ---
-    Serial.print("STEPPER 1: Moving to ");
-    Serial.print(angle);
-    Serial.println(" degrees.");
-    
-    long stepsToMove = angleToSteps(angle);
-    _stepper1->moveTo(stepsToMove);
-    _stepper1->runToPosition(); // Blocks until Stepper 1 is in position
-    
-    Serial.println("STEPPER 1: In position.");
+    int s1_steps = angleToSteps(angle);
 
-    // --- 2. Spin Stepper 2 (Top) one full 360 to drop ---
-    //Serial.println("STEPPER 2: Beginning 360 drop spin.");
+    // --- Phase 1: Stepper 1 moves (Keep it FAST) ---
+    Serial.print("STEPPER 1: Moving steps: ");
+    Serial.println(s1_steps);
+    digitalWrite(_s1_dir_pin, LOW); 
     
-    // Tell Stepper 2 to move 360 degrees from its current position.
-    //_stepper2->move(_steps_per_rev); 
+    // 700 is fast (good for the lightweight sorting grid)
+    stepMotor(_s1_step_pin, s1_steps, 700); 
     
-    // This blocks until Stepper 2 completes its full rotation
-    //_stepper2->runToPosition();
+    delay(500);
 
-    //Serial.println("STEPPER 2: Drop complete.");
+    // --- Phase 2: Stepper 2 spins 360 (Make it SLOW & STRONG) ---
+    Serial.println("STEPPER 2: Spinning 360 with AccelStepper");
+    _motor2->setCurrentPosition(0); // reset to 0
+    _motor2->moveTo(200); // full rotation in full step mode
 
-    // --- 3. NEW: Return BOTH steppers to home (0 degrees) ---
-    Serial.println("HOMING: Returning both steppers to 0.");
-
-    // Tell Stepper 1 to go home
-    _stepper1->moveTo(0);
+    while(_motor2->distanceToGo() != 0) {
+        _motor2->run();
+    }
     
-    // Tell Stepper 2 to go home (it will spin 360 degrees back)
-    //_stepper2->moveTo(0); 
+    delay(500); 
 
-    // Wait for them to get there. We must block and run them
-    // sequentially so they finish before the next command.
-    
-    // Stepper 1 runs home:
-    Serial.println("HOMING: Stepper 1 returning...");
-    _stepper1->runToPosition();
-    Serial.println("HOMING: Stepper 1 at 0.");
-    
-    // Stepper 2 runs home:
-    //Serial.println("HOMING: Stepper 2 returning...");
-    //_stepper2->runToPosition();
-    //Serial.println("HOMING: Stepper 2 at 0.");
+    // --- Phase 3: Stepper 1 returns (Keep it FAST) ---
+    Serial.println("STEPPER 1: Returning Home.");
+    digitalWrite(_s1_dir_pin, HIGH); 
+    stepMotor(_s1_step_pin, s1_steps, 700); 
 
-    Serial.println("--- Sort Action Finished. Ready for next. ---");
+    Serial.println("--- Sort Action Complete ---");
 }
