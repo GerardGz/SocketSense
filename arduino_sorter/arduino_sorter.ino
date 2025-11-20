@@ -10,10 +10,10 @@
 #include "ServoController.h"
 
 // --- Stepper Config (for BOTH steppers) ---
-const int STEPPER1_STEP_PIN = 3;
-const int STEPPER1_DIR_PIN  = 4;
-const int STEPPER2_STEP_PIN = 5;
-const int STEPPER2_DIR_PIN  = 6;
+const int STEPPER1_STEP_PIN = 2;
+const int STEPPER1_DIR_PIN  = 3;
+const int STEPPER2_STEP_PIN = 4;
+const int STEPPER2_DIR_PIN  = 5;
 const int STEPS_PER_REV = 200; // NEMA 17 default
 
 // Create both stepper objects
@@ -56,12 +56,12 @@ void setup() {
     // Serial1.begin(9600); 
 
     // Initialize Stepper 1
-    stepper1.setMaxSpeed(500);
-    stepper1.setAcceleration(250);
+    stepper1.setMaxSpeed(1000);
+    stepper1.setAcceleration(500);
     
     // Initialize Stepper 2
-    stepper2.setMaxSpeed(300); // Slower for the drop
-    stepper2.setAcceleration(150);
+    stepper2.setMaxSpeed(500); // Slower for the drop
+    stepper2.setAcceleration(200);
     Serial.println("Steppers initialized.");
 
     // Initialize Servo Driver
