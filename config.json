@@ -10,19 +10,23 @@
   "socket_to_grid_map": {
     "10mm": {
       "grid_id": "Grid 1",
-      "stepper1_angle": 90
+      "stepper1_angle": 90,
+      "servo_id": 1
     },
     "12mm": {
       "grid_id": "Grid 9",
-      "stepper1_angle": 90
+      "stepper1_angle": 90,
+      "servo_id": 9
     },
     "13mm": {
       "grid_id": "Grid 5",
-      "stepper1_angle": 90
+      "stepper1_angle": 90,
+      "servo_id": 5
     },
     "15mm": {
       "grid_id": "Grid 13",
-      "stepper1_angle": 90
+      "stepper1_angle": 90,
+      "servo_id": 13
     }
   },
   "serial_port": "/dev/ttyUSB0",
