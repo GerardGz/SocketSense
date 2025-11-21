@@ -1,5 +1,5 @@
 {
-  "model_path": "models/socket_classifier_v1.h5",
+  "model_path": "models/socket_classifier_v1.tflite",
   "image_size": [224, 224],
   "class_names": [
     "10mm",
