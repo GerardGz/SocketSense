@@ -157,13 +157,32 @@ try:
                 if conf > 70.0 and cls in GRID_MAP:
                     info = GRID_MAP[cls]
                     angle = info['stepper1_angle']
-                    grid = info['grid_id']
                     
+                    # 1. Send Command
+                    print(f"✅ Vision: Detected {cls}. Sorting...")
                     if ser: ser.write(f"SORT:{angle}\n".encode('utf-8'))
-                    print(f"✅ Vision: {cls} ({conf:.1f}%) -> {grid}")
-                
-                last_pred = time.time()
-                break
+                    
+                    # 2. PAUSE Python to let the robot finish physically
+                    # (Adjust this time to match your physical sort time)
+                    time.sleep(5) 
+                    
+                    # 3. FLUSH the camera buffer
+                    # The camera buffer still has 5 seconds of "old" frames in it.
+                    # We need to grab a few dummy frames to get to the "now".
+                    for _ in range(5):
+                        cap.read()
+                        
+                    # 4. RETAKE the Background
+                    # Now that the robot is done and gone, this is the new "empty" state.
+                    ret, bg_frame = cap.read()
+                    gray_bg = cv2.cvtColor(bg_frame, cv2.COLOR_BGR2GRAY)
+                    background_gray = cv2.GaussianBlur(gray_bg, (21, 21), 0)
+                    
+                    print("🔄 Background reset. Ready for next socket.")
+                    
+                    # Reset timer so we don't trigger immediately
+                    last_pred = time.time()
+                    break
 except KeyboardInterrupt:
     print("\nShutting down...")
 finally:
