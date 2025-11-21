@@ -29,7 +29,7 @@ VOICE_MAP = {k: v['servo_id'] for k, v in GRID_MAP.items()}
 
 ARDUINO_PORT = '/dev/ttyUSB0' 
 BAUD_RATE = 9600
-MIN_CONTOUR_AREA = 2000
+MIN_CONTOUR_AREA = 5000
 COOLDOWN_PERIOD = 3.0
 
 # --- 1. Load TFLite Model ---
@@ -86,7 +86,7 @@ def process_voice_with_gemini(audio_file):
         Return JSON: {{"command": "OPEN", "id": <int>}} or {{"command": "NONE"}}
         """
         response = client.models.generate_content(
-            model="gemini-1.5-flash", contents=[prompt, myfile])
+            model="gemini-2.5-flash", contents=[prompt, myfile])
         clean_text = response.text.strip().replace('```json', '').replace('```', '')
         return json.loads(clean_text)
     except Exception as e:
@@ -112,7 +112,7 @@ t.start()
 cap = cv2.VideoCapture(0)
 if not cap.isOpened(): exit()
 
-time.sleep(2)
+time.sleep(10)
 ret, bg_frame = cap.read()
 # Fix: Blur the grayscale image
 bg_gray = cv2.cvtColor(bg_frame, cv2.COLOR_BGR2GRAY)
@@ -130,7 +130,7 @@ try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
             diff = cv2.absdiff(bg_gray, gray)
-            thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)[1]
+            thresh = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)[1]
             cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             for c in cnts:
