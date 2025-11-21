@@ -98,7 +98,7 @@ if not ret:
     exit()
 
 background_gray = cv2.cvtColor(background_frame, cv2.COLOR_BGR2GRAY)
-background_gray = cv2.GaussianBlur(background_frame, (21, 21), 0)
+background_gray = cv2.GaussianBlur(background_gray, (21, 21), 0)
 print("Background captured. Ready for detection.")
 
 last_prediction_time = 0
@@ -156,15 +156,20 @@ try:
                 confidence = np.max(predictions) * 100
                 predicted_class = CLASS_NAMES[predicted_class_idx]
 
-                if predicted_class in GRID_MAP:
-                    action_info = GRID_MAP[predicted_class]
-                    angle_to_rotate = action_info['stepper1_angle']
-                    grid_name = action_info['grid_id']
-                    command_string = f"SORT:{angle_to_rotate}\n"
-                    ser.write(command_string.encode('utf-8'))
-                    print(f"Action: Detected {predicted_class} ({confidence:.2f}%), sent to {grid_name}")
+                if confidence > 70.0: # Only act if 70% sure
+                    if predicted_class in GRID_MAP:
+                        action_info = GRID_MAP[predicted_class]
+                        angle_to_rotate = action_info['stepper1_angle']
+                        grid_name = action_info['grid_id']
+                        
+                        command_string = f"SORT:{angle_to_rotate}\n"
+                        ser.write(command_string.encode('utf-8'))
+                        
+                        print(f"Action: Detected {predicted_class} ({confidence:.2f}%), sent to {grid_name}")
+                    else:
+                        print(f"Error: {predicted_class} not found in config map.")
                 else:
-                    print(f"Error: {predicted_class} not found in config map.")
+                    print(f"Ignored: Detection too weak ({predicted_class} at {confidence:.2f}%)")
 
                 last_prediction_time = time.time()
                 break

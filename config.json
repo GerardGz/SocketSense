@@ -2,27 +2,27 @@
   "model_path": "models/socket_classifier_v1.h5",
   "image_size": [224, 224],
   "class_names": [
+    "10mm",
     "12mm",
-    "15mm",
-    "20mm",
-    "24mm"
+    "13mm",
+    "15mm"
   ],
   "socket_to_grid_map": {
-    "12mm": {
+    "10mm": {
       "grid_id": "Grid 1",
       "stepper1_angle": 90
     },
+    "12mm": {
+      "grid_id": "Grid 9",
+      "stepper1_angle": 90
+    },
+    "13mm": {
+      "grid_id": "Grid 5",
+      "stepper1_angle": 90
+    },
     "15mm": {
-      "grid_id": "Grid 2",
-      "stepper1_angle": 180
-    },
-    "20mm": {
-      "grid_id": "Grid 3",
-      "stepper1_angle": 270
-    },
-    "24mm": {
-      "grid_id": "Grid 4",
-      "stepper1_angle": 300
+      "grid_id": "Grid 13",
+      "stepper1_angle": 90
     }
   },
   "serial_port": "/dev/ttyUSB0",
