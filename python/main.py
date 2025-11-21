@@ -39,7 +39,7 @@ COOLDOWN_PERIOD = 3.0
 
 # --- MOTION DETECTION SETTINGS (ROI) ---
 # Only look for motion in this center box to ignore the gear teeth
-CROP_SIZE = 100      # Size of the square box (pixels)
+CROP_SIZE = 80      # Size of the square box (pixels)
 MIN_CROP_AREA = 200  # Smaller threshold because we are looking at a small box
 
 # --- 1. Load TFLite Model ---
