@@ -200,7 +200,7 @@ try:
                 conf = np.max(preds) * 100
                 cls = CLASS_NAMES[idx]
 
-                if conf > 80.0: 
+                if conf > 50.0: 
                     if cls in GRID_MAP:
                         info = GRID_MAP[cls]
                         angle = info['stepper1_angle']
