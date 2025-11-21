@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 # Load your trained model
-model = tf.keras.models.load_model('models/socket_classifier_v1.h5')
+model = tf.keras.models.load_model('../models/socket_classifier_v1.h5')
 
 # Convert it
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
